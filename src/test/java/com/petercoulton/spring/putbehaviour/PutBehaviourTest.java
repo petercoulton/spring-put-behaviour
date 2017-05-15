@@ -35,11 +35,21 @@ public class PutBehaviourTest {
 
 	@Test
 	public void createBlob() throws Exception {
-		mvc.perform(post("/blobs")
-				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.content("{\"name\": \"bob\"}"))
-				.andExpect(status().isCreated())
-				.andDo(print());
+		final MvcResult createResult =
+				mvc.perform(post("/blobs")
+						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.content("{\"name\": \"bob\"}"))
+						.andExpect(status().isCreated())
+						.andDo(print())
+						.andReturn();
+
+		final String newBlobLocation = createResult.getResponse().getHeader("Location");
+
+		mvc.perform(get(newBlobLocation))
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.name", Is.is("bob")))
+				.andReturn();
 	}
 
 	@Test
